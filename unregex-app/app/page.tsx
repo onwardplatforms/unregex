@@ -1,15 +1,13 @@
 "use client"
 
 import React, { useState } from 'react';
+import Head from 'next/head';
 import axios from 'axios';
 import languageMap from './data';
-import { CodeBlock } from '@/components/ui/codeblock'
 import { Textarea } from '@/components/ui/textarea'
-import { Input } from '@/components/ui/input'
 import { Copybox } from '@/components/ui/copybox'
-import { Skeleton } from '@/components/ui/skeleton'
+import { LoadingSkeleton } from '@/components/loading-skeleton'
 import { Toggle } from "@/components/ui/toggle"
-// import { Separator } from '@components/ui/separator'
 import {
   Card,
   CardContent,
@@ -26,16 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-
-export function SkeletonDemo() {
-  return (
-    <div className="flex flex-col items-start space-y-2">
-      <Skeleton className="h-4 w-[100%]" />
-      <Skeleton className="h-4 w-[80%]" />
-      <Skeleton className="h-4 w-[90%]" />
-    </div>
-  )
-}
 
 export default function Home() {
   type LanguageKey = keyof typeof languageMap;
@@ -157,7 +145,14 @@ export default function Home() {
 
   return (
     <main className="flex flex-col min-h-screen items-center p-6">
-      <h1 className="text-4xl lg:text-6xl p-6">Unregex</h1>
+      <Head>
+        <title>Unregex: The #1 AI-Powered Regex Generator Online</title>
+        <meta name="description" content="Unregex is your go-to AI-powered Regex Generator. Simplify and enhance your regular expression tasks instantly. Try now!" />
+        <link rel="canonical" href="https://unregex.com/" />
+        <meta name="language" content="EN" />
+      </Head>
+      <h1 className="text-4xl lg:text-6xl p-4">Unregex</h1>
+      <p className="pb-4">Where <b>[rR]eg[eE][xX]</b> writes itself.</p>
       <div className="flex flex-col lg:items-stretch lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 z-10 max-w-5xl w-full items-center justify-between text-sm">
         <Card className="w-full lg:w-[50%]">
           <CardHeader>
@@ -203,10 +198,10 @@ export default function Home() {
             <div>
               <p className="mt-4">Toggles</p>
               <div className="p-4">
-              <Toggle className="m-2">Global Matches</Toggle>
-              <Toggle className="m-2">Capture Groups</Toggle>
-              <Toggle className="m-2">Ignore Case</Toggle>
-              <Toggle className="m-2">Word Boundaries</Toggle>
+                <Toggle className="m-2">Global Matches</Toggle>
+                <Toggle className="m-2">Capture Groups</Toggle>
+                <Toggle className="m-2">Ignore Case</Toggle>
+                <Toggle className="m-2">Word Boundaries</Toggle>
               </div>
             </div>
             <Button className="mt-4" onClick={handleGenerateRegex}>Generate Regex</Button>
@@ -226,7 +221,7 @@ export default function Home() {
             ) : (
               <>
                 {isLoading ? (
-                  <SkeletonDemo />
+                  <LoadingSkeleton />
                 ) : (
                   <>
                     <div>
