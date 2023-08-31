@@ -38,6 +38,7 @@
     "typescript": "5.2.2"
   },
   "devDependencies": {
+    "@types/next": "^9.0.0",
     "@types/react-syntax-highlighter": "^15.5.7"
   }
 }

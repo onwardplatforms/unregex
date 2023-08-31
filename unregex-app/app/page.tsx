@@ -25,6 +25,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+type EnvProps = {
+  OPENAI_API_KEY: string;
+};
+
 export default function Home() {
   type LanguageKey = keyof typeof languageMap;
 
@@ -99,7 +103,7 @@ export default function Home() {
     console.log(prompt)
 
     try {
-      const response = await axios.post('https://api.openai.com/v1/chat/completions', {
+      const response = await axios.post('/api/regex', {
         model: "gpt-3.5-turbo",
         messages: [
           {
@@ -113,11 +117,6 @@ export default function Home() {
         ],
         temperature: 0.5,
         max_tokens: 2500
-      }, {
-        headers: {
-          'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-          'Content-Type': 'application/json',
-        }
       });
 
       const chatOutput = response.data.choices[0].message.content;
