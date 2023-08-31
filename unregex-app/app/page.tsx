@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import axios from 'axios';
+import languageMap from './data';
+import { CodeBlock } from '@/components/ui/codeblock'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Copybox } from '@/components/ui/copybox'
@@ -22,19 +24,22 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
-
-
 export default function Home() {
+  type LanguageKey = keyof typeof languageMap;
+
   const [text, setText] = useState("");
   const [context, setContext] = useState("");
-  const [language, setLanguage] = useState("python");
+  const [language, setLanguage] = useState<LanguageKey>('python');
   const [textCount, setTextCount] = useState(0);
   const [regex_pattern, setRegexPattern] = useState("");
   const [code_example, setCodeExample] = useState("");
+  const [explanation, setExplanation] = useState("");
   const [apiError, setApiError] = useState(null);
 
   const handleLanguageChange = (value: string) => {
-    setLanguage(value);
+    if (Object.keys(languageMap).includes(value)) {
+      setLanguage(value as LanguageKey);
+    }
   };
 
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -48,17 +53,20 @@ export default function Home() {
       Given this text:
       \`${text}\`
     
-      I want to write valid regex for the programming language "${language}" given this context:
+      I want to write valid regex for the programming language "${languageMap[language]}" given this context:
       \`${context}\`
     
       Return the response as a json object that looks like this:
     
+      \`\`\`json
       {
         "regex_pattern": "The regex pattern",
         "code_example": "A code example that includes all required imports and logic",
+        "explanation": "A breakdown of the regex components and how it works"
       }
+      \`\`\`
     
-      ONLY return json.  Make sure escape all characters in the response so it is valid.  DO NOT explain.  When writing regex, try to use patterns that are more flexible rather than rigid.
+      ONLY return json.  ALWAYS ensure to escape all special characters and backslashes (e.g. \\\\d instead of \\d in the response to produce valid JSON.  DO NOT explain.
     `;
 
     console.log(prompt)
@@ -69,27 +77,36 @@ export default function Home() {
         messages: [
           {
             "role": "system",
-            "content": "You are an expert at writing regex and love helping people write great regex."
+            "content": "You are an expert at writing regex and love helping people write robust and valid regex."
           },
           {
             "role": "user",
             "content": prompt
           }
-        ]
+        ],
+        temperature: 0.5,
+        max_tokens: 2500
       }, {
         headers: {
           'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
         }
       });
 
       const chatOutput = response.data.choices[0].message.content;
-      const regexOutput = JSON.parse(chatOutput);
+      console.log(chatOutput)
 
-      console.log(regexOutput)
+      try {
+        const regexOutput = JSON.parse(chatOutput);
+        console.log(regexOutput)
 
-      setRegexPattern(regexOutput.regex_pattern);
-      setCodeExample(regexOutput.code_example);
+        setRegexPattern(regexOutput.regex_pattern);
+        setCodeExample(regexOutput.code_example);
+        setExplanation(regexOutput.explanation);
+      } catch (error: any) {
+        console.error('Error parsing JSON: ', error);
+        setApiError(error.toString());
+      }
 
     } catch (error: any) {
       console.error('Error interacting with OpenAI API: ', error);
@@ -114,42 +131,50 @@ export default function Home() {
             <p className="my-4">Language</p>
             <Select onValueChange={handleLanguageChange} value={language}>
               <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder={language} />
+                <SelectValue placeholder={languageMap[language] || language} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="python">Python</SelectItem>
-                <SelectItem value="javascript">JavaScript</SelectItem>
-                <SelectItem value="rust">Rust</SelectItem>
-                <SelectItem value="go">Go</SelectItem>
-                <SelectItem value="dotnetcsharp">.Net (C#)</SelectItem>
-                <SelectItem value="java8">Java8</SelectItem>
-                <SelectItem value="php">PHP</SelectItem>
+                {(Object.keys(languageMap) as LanguageKey[]).map((key) => (
+                  <SelectItem key={key} value={key}>
+                    {languageMap[key]}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button className="mt-4" onClick={handleGenerateRegex}>Generate Regex</Button>
           </CardContent>
         </Card>
         <Card className="w-full">
-        <CardHeader>
-          <CardTitle>Output</CardTitle>
-          <CardDescription>... and get your regex pattern.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {apiError ? (
-            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-              <strong className="font-bold">Error: </strong>
-              <span className="inline-block">{apiError}</span>
-            </div>
-          ) : (
-            <>
-              <p className="my-4">Regex Pattern</p>
-              <Copybox className="h-full" text={regex_pattern}></Copybox>
-              <p className="mt-4">Code Example</p>
-              <Copybox className="h-full" text={code_example}></Copybox>
-            </>
-          )}
-        </CardContent>
-      </Card>
+          <CardHeader>
+            <CardTitle>Output</CardTitle>
+            <CardDescription>... and get your regex pattern.</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {apiError ? (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                <strong className="font-bold">Error: </strong>
+                <span className="inline-block">{apiError}</span>
+              </div>
+            ) : (
+              <>
+                <p className="my-4">Regex Pattern</p>
+                <Copybox className="h-full" text={regex_pattern}></Copybox>
+                <p className="mt-4">Code Example</p>
+                <Copybox className="h-full" text={code_example}></Copybox>
+                <p className="mt-4">Explaination</p>
+                <p className="mt-4">{explanation}</p>
+                {/* <p className="my-4">Regex Pattern</p>
+                <CodeBlock language={language} text={regex_pattern} />
+
+                <p className="mt-4">Code Example</p>
+                <CodeBlock language={language} text={code_example} />
+
+                <p className="mt-4">Explanation</p>
+                <p className="mt-4">{explanation}</p> */}
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </main>
   )
