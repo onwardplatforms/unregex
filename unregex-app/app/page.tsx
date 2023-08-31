@@ -7,6 +7,9 @@ import { CodeBlock } from '@/components/ui/codeblock'
 import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Copybox } from '@/components/ui/copybox'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Toggle } from "@/components/ui/toggle"
+// import { Separator } from '@components/ui/separator'
 import {
   Card,
   CardContent,
@@ -24,6 +27,16 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 
+export function SkeletonDemo() {
+  return (
+    <div className="flex flex-col items-start space-y-2">
+      <Skeleton className="h-4 w-[100%]" />
+      <Skeleton className="h-4 w-[80%]" />
+      <Skeleton className="h-4 w-[90%]" />
+    </div>
+  )
+}
+
 export default function Home() {
   type LanguageKey = keyof typeof languageMap;
 
@@ -35,6 +48,10 @@ export default function Home() {
   const [code_example, setCodeExample] = useState("");
   const [explanation, setExplanation] = useState("");
   const [apiError, setApiError] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // const isButtonDisabled = !text || !context || !language;
+  const [validationError, setValidationError] = useState<{ text?: boolean, context?: boolean, language?: boolean, textLength?: boolean }>({});
 
   const handleLanguageChange = (value: string) => {
     if (Object.keys(languageMap).includes(value)) {
@@ -45,10 +62,32 @@ export default function Home() {
   const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setText(e.target.value);
     setTextCount(e.target.value.length);
+    setValidationError(prevState => ({ ...prevState, text: false, textLength: false }));
   };
 
   const handleGenerateRegex = async () => {
+    // Reset validation state and output fields
+    setValidationError({});
+    setRegexPattern("");
+    setCodeExample("");
+    setExplanation("");
     setApiError(null);
+
+    const isTextTooLong = text.length > 1000;
+
+    if (!text || !context || !language || isTextTooLong) {
+      setValidationError({
+        text: !text,
+        context: !context,
+        language: !language,
+        textLength: isTextTooLong,
+      });
+      return;
+    }
+
+    setApiError(null);
+    setIsLoading(true);
+
     const prompt = `
       Given this text:
       \`${text}\`
@@ -103,9 +142,11 @@ export default function Home() {
         setRegexPattern(regexOutput.regex_pattern);
         setCodeExample(regexOutput.code_example);
         setExplanation(regexOutput.explanation);
+        setIsLoading(false);
       } catch (error: any) {
         console.error('Error parsing JSON: ', error);
         setApiError(error.toString());
+        setIsLoading(false);
       }
 
     } catch (error: any) {
@@ -115,36 +156,63 @@ export default function Home() {
   };
 
   return (
-    <main className="flex flex-col min-h-screen items-center justify-between p-24">
-      <div className="flex flex-col lg:items-stretch lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 z-10 max-w-5xl w-full items-center justify-between font-mono text-sm">
-        <Card className="w-full">
+    <main className="flex flex-col min-h-screen items-center p-6">
+      <h1 className="text-4xl lg:text-6xl p-6">Unregex</h1>
+      <div className="flex flex-col lg:items-stretch lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 z-10 max-w-5xl w-full items-center justify-between text-sm">
+        <Card className="w-full lg:w-[50%]">
           <CardHeader>
             <CardTitle>Input</CardTitle>
             <CardDescription>Define what you want to extract ...</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="my-4">Text</p>
-            <Textarea value={text} onChange={handleTextChange} maxLength={1000} />
-            <div className="text-right mt-1 text-sm text-gray-500">{textCount}/1000</div>
-            <p className="my-4">Context</p>
-            <Input className="my-4" type="text" placeholder="I want to extract..." value={context} onChange={(e) => setContext(e.target.value)} />
-            <p className="my-4">Language</p>
-            <Select onValueChange={handleLanguageChange} value={language}>
-              <SelectTrigger className="w-[250px]">
-                <SelectValue placeholder={languageMap[language] || language} />
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(languageMap) as LanguageKey[]).map((key) => (
-                  <SelectItem key={key} value={key}>
-                    {languageMap[key]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div>
+              <p className="my-4">Text</p>
+              <Textarea
+                value={text}
+                onChange={handleTextChange}
+                maxLength={1000}
+                className={`${validationError.text || validationError.textLength ? 'border-red-500' : ''}`}
+              />
+            </div>
+            <div>
+              {validationError.textLength && <div className="text-red-500 text-sm">Text should be less than 1000 characters.</div>}
+              <div className="text-right mt-1 text-sm text-gray-500">{textCount}/1000</div>
+              <p className="my-4">Context</p>
+              <Textarea
+                className={`my-4 ${validationError.context ? 'border-red-500' : ''}`}
+                placeholder="I want to extract..."
+                value={context}
+                onChange={(e) => setContext(e.target.value)}
+              />
+            </div>
+            <div>
+              <p className="my-4">Language</p>
+              <Select onValueChange={handleLanguageChange} value={language}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder={languageMap[language] || language} />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(languageMap) as LanguageKey[]).map((key) => (
+                    <SelectItem key={key} value={key}>
+                      {languageMap[key]}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <p className="mt-4">Toggles</p>
+              <div className="p-4">
+              <Toggle className="m-2">Global Matches</Toggle>
+              <Toggle className="m-2">Capture Groups</Toggle>
+              <Toggle className="m-2">Ignore Case</Toggle>
+              <Toggle className="m-2">Word Boundaries</Toggle>
+              </div>
+            </div>
             <Button className="mt-4" onClick={handleGenerateRegex}>Generate Regex</Button>
           </CardContent>
         </Card>
-        <Card className="w-full">
+        <Card className="w-full lg:w-[50%]">
           <CardHeader>
             <CardTitle>Output</CardTitle>
             <CardDescription>... and get your regex pattern.</CardDescription>
@@ -157,20 +225,26 @@ export default function Home() {
               </div>
             ) : (
               <>
-                <p className="my-4">Regex Pattern</p>
-                <Copybox className="h-full" text={regex_pattern}></Copybox>
-                <p className="mt-4">Code Example</p>
-                <Copybox className="h-full" text={code_example}></Copybox>
-                <p className="mt-4">Explaination</p>
-                <p className="mt-4">{explanation}</p>
-                {/* <p className="my-4">Regex Pattern</p>
-                <CodeBlock language={language} text={regex_pattern} />
-
-                <p className="mt-4">Code Example</p>
-                <CodeBlock language={language} text={code_example} />
-
-                <p className="mt-4">Explanation</p>
-                <p className="mt-4">{explanation}</p> */}
+                {isLoading ? (
+                  <SkeletonDemo />
+                ) : (
+                  <>
+                    <div>
+                      <p className="my-4">Regex Pattern</p>
+                      <Copybox className="h-full font-mono overflow-x-scroll" text={regex_pattern}></Copybox>
+                    </div>
+                    <div>
+                      <p className="my-4">Code Example</p>
+                      <Copybox className="h-full font-mono overflow-x-scroll" text={code_example} language={language}></Copybox>
+                    </div>
+                    {explanation && (
+                      <div>
+                        <p className="my-4">Explanation</p>
+                        <p className="m-4">{explanation}</p>
+                      </div>
+                    )}
+                  </>
+                )}
               </>
             )}
           </CardContent>
