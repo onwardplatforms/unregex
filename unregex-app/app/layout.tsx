@@ -35,6 +35,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
         <meta name="description" content={metadata.description} />
         <link rel="canonical" href="https://unregex.com/" />
         <meta name="language" content="EN" />
+        <link rel="icon" type="image/svg+xml" href="/unregex.svg" />
       </Head>
       <Script
         async
