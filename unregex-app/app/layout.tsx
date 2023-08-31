@@ -2,10 +2,18 @@ import Head from 'next/head';
 import './globals.css';
 import React, { ReactNode } from 'react';
 import { Inter } from 'next/font/google'
+import Script from 'next/script';
 
 interface Metadata {
   title: string;
   description: string;
+}
+
+declare global {
+  interface Window {
+    // @ts-ignore
+    gtag: any;
+  }
 }
 
 const inter = Inter({ subsets: ['latin'] });
@@ -28,6 +36,20 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
         <link rel="canonical" href="https://unregex.com/" />
         <meta name="language" content="EN" />
       </Head>
+      <Script
+        async
+        strategy="afterInteractive"
+        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GA_TRACKING_ID}`}
+      />
+      <Script id="google-analytics" strategy="afterInteractive">
+        {`
+          window.dataLayer = window.dataLayer || [];
+          function gtag(){window.dataLayer.push(arguments);}
+          gtag('js', new Date());
+
+          gtag('config', ${process.env.GA_TRACKING_ID});
+        `}
+      </Script>
       <body className={inter.className}>{children}</body>
     </html>
   );

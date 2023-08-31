@@ -194,7 +194,7 @@ export default function Home() {
                 </SelectContent>
               </Select>
             </div>
-            {/* <div>
+            <div>
               <p className="mt-4">Toggles</p>
               <div className="p-4">
                 <Toggle className="m-2">Global Matches</Toggle>
@@ -202,7 +202,7 @@ export default function Home() {
                 <Toggle className="m-2">Ignore Case</Toggle>
                 <Toggle className="m-2">Word Boundaries</Toggle>
               </div>
-            </div> */}
+            </div>
             <Button className="mt-4" onClick={handleGenerateRegex}>Generate Regex</Button>
           </CardContent>
         </Card>
