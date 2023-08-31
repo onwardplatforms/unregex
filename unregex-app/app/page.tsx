@@ -7,6 +7,7 @@ import languageMap from './data';
 import { Textarea } from '@/components/ui/textarea'
 import { Copybox } from '@/components/ui/copybox'
 import { LoadingSkeleton } from '@/components/loading-skeleton'
+import { Slider } from "@/components/ui/slider"
 import { Toggle } from "@/components/ui/toggle"
 import {
   Card,
@@ -36,6 +37,7 @@ export default function Home() {
   const [context, setContext] = useState("");
   const [language, setLanguage] = useState<LanguageKey>('python');
   const [textCount, setTextCount] = useState(0);
+  const [temperature, setTemerature] = useState(0.3);
   const [regex_pattern, setRegexPattern] = useState("");
   const [code_example, setCodeExample] = useState("");
   const [explanation, setExplanation] = useState("");
@@ -86,6 +88,8 @@ export default function Home() {
     
       I want to write valid regex for the programming language "${languageMap[language]}" given this context:
       \`${context}\`
+
+      The regex pattern must account for all nuances, such as spaces, dashes, special characters, and other punctuation marks that may appear in the text.
     
       Return the response as a json object that looks like this:
     
@@ -115,7 +119,7 @@ export default function Home() {
             "content": prompt
           }
         ],
-        temperature: 0.5,
+        temperature: 0.4,
         max_tokens: 2500
       });
 
@@ -150,8 +154,15 @@ export default function Home() {
         <link rel="canonical" href="https://unregex.com/" />
         <meta name="language" content="EN" />
       </Head>
-      <h1 className="text-4xl lg:text-6xl p-4">Unregex</h1>
-      <p className="pb-4">Where <b>[rR]eg[eE][xX]</b> writes itself.</p>
+      <div className="flex flex-col items-center justify-center p-4">
+        <div className="flex items-center">
+          <img src="/unregex.svg" alt="Unregex Logo" className="h-[36px] lg:h-[48px] w-auto align-middle inline" />
+          <h1 className="text-4xl lg:text-6xl p-4 inline align-middle">Unregex</h1>
+        </div>
+        <p className="pb-4">Where <b>[rR]eg[eE][xX]</b> writes itself.</p>
+      </div>
+
+
       <div className="flex flex-col lg:items-stretch lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4 z-10 max-w-5xl w-full items-center justify-between text-sm">
         <Card className="w-full lg:w-[50%]">
           <CardHeader>
@@ -203,6 +214,17 @@ export default function Home() {
                 <Toggle className="m-2">Word Boundaries</Toggle>
               </div>
             </div> */}
+            <p className="my-4">Temperature</p>
+            <Slider
+              className="p-4 w-full"
+              defaultValue={[0.3]}
+              max={0.6}
+              step={0.01}
+              onChange={(event: React.FormEvent<HTMLDivElement>) => {
+                const target = event.target as HTMLInputElement;
+                setTemerature(parseFloat(target.value));
+              }}
+            />
             <Button className="mt-4" onClick={handleGenerateRegex}>Generate Regex</Button>
           </CardContent>
         </Card>
