@@ -43,6 +43,12 @@ export default function Home() {
   const [explanation, setExplanation] = useState("");
   const [apiError, setApiError] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [toggleState, setToggleState] = useState({
+    globalMatches: false,
+    captureGroups: false,
+    ignoreCase: false,
+    wordBoundaries: false,
+  });
 
   // const isButtonDisabled = !text || !context || !language;
   const [validationError, setValidationError] = useState<{ text?: boolean, context?: boolean, language?: boolean, textLength?: boolean }>({});
@@ -68,6 +74,33 @@ export default function Home() {
     setApiError(null);
 
     const isTextTooLong = text.length > 1000;
+    let optionalSentences = [];
+
+    if (toggleState.globalMatches) {
+      optionalSentences.push("Find all matches.");
+    } else {
+      optionalSentences.push("Do not find all matches.");
+    }
+
+    if (toggleState.captureGroups) {
+      optionalSentences.push("Use capture groups in the regular expression (e.g. wrap matches in ()).");
+    } else {
+      optionalSentences.push("Do not use capture groups in the regular expression.");
+    }
+
+    if (toggleState.ignoreCase) {
+      optionalSentences.push("Ignore case.");
+    } else {
+      optionalSentences.push("Do not ignore case.");
+    }
+
+    if (toggleState.wordBoundaries) {
+      optionalSentences.push("Use word boundaries.");
+    } else {
+      optionalSentences.push("Do not use word boundaries (e.g. \\b).");
+    }
+
+    const optionalContext = optionalSentences.join('\n');
 
     if (!text || !context || !language || isTextTooLong) {
       setValidationError({
@@ -83,25 +116,29 @@ export default function Home() {
     setIsLoading(true);
 
     const prompt = `
-      Given this text:
-      \`${text}\`
-    
-      I want to write valid regex for the programming language "${languageMap[language]}" given this context:
-      \`${context}\`
+Given this text:
+\`${text}\`
 
-      The regex pattern must account for all nuances, such as spaces, dashes, special characters, and other punctuation marks that may appear in the text.
-    
-      Return the response as a json object that looks like this:
-    
-      \`\`\`json
-      {
-        "regex_pattern": "The regex pattern",
-        "code_example": "A code example that includes all required imports and logic",
-        "explanation": "A breakdown of the regex components and how it works"
-      }
-      \`\`\`
-    
-      ONLY return json.  ALWAYS ensure to escape all special characters and backslashes (e.g. \\\\d instead of \\d in the response to produce valid JSON.  DO NOT explain.
+I want to write valid regex for the programming language "${languageMap[language]}" given this goal:
+\`${context}\`
+
+Following these rules.  DO NOT WRITE REGEX THAT DOES NOT FOLLOW THESE RULES:
+\`${optionalContext}\`
+
+The regex pattern must account for all nuances, such as spaces, dashes, special characters, and other punctuation marks that may appear in the text.
+
+Return the response as a json object that looks like this:
+
+\`\`\`json
+{
+  "regex_pattern": "The regex pattern",
+  "code_example": "A code example that includes all required imports and logic",
+  "explanation": "A breakdown of the regex components and how it works"
+}
+\`\`\`
+
+DO NOT explain. ONLY return json.
+ALWAYS ensure to escape all special characters and backslashes (e.g. \\\\d instead of \\d in the response to produce valid JSON.
     `;
 
     console.log(prompt)
@@ -205,20 +242,28 @@ export default function Home() {
                 </SelectContent>
               </Select>
             </div>
-            {/* <div>
-              <p className="mt-4">Toggles</p>
+            <div>
+              <p className="mt-4">Suggestions</p>
               <div className="p-4">
-                <Toggle className="m-2">Global Matches</Toggle>
-                <Toggle className="m-2">Capture Groups</Toggle>
-                <Toggle className="m-2">Ignore Case</Toggle>
-                <Toggle className="m-2">Word Boundaries</Toggle>
+                <Toggle className="m-2" onClick={() => setToggleState(prevState => ({ ...prevState, globalMatches: !prevState.globalMatches }))}>
+                  Global Matches
+                </Toggle>
+                <Toggle className="m-2" onClick={() => setToggleState(prevState => ({ ...prevState, captureGroups: !prevState.captureGroups }))}>
+                  Capture Groups
+                </Toggle>
+                <Toggle className="m-2" onClick={() => setToggleState(prevState => ({ ...prevState, ignoreCase: !prevState.ignoreCase }))}>
+                  Ignore Case
+                </Toggle>
+                <Toggle className="m-2" onClick={() => setToggleState(prevState => ({ ...prevState, wordBoundaries: !prevState.wordBoundaries }))}>
+                  Word Boundaries
+                </Toggle>
               </div>
-            </div> */}
+            </div>
             <p className="my-4">Temperature</p>
             <Slider
               className="p-4 w-full"
-              defaultValue={[0.3]}
-              max={0.6}
+              defaultValue={[0.5]}
+              max={1.0}
               step={0.01}
               onChange={(event: React.FormEvent<HTMLDivElement>) => {
                 const target = event.target as HTMLInputElement;
