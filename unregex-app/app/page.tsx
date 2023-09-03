@@ -219,7 +219,7 @@ ALWAYS ensure to escape all special characters and backslashes (e.g. \\\\d inste
             <div>
               {validationError.textLength && <div className="text-red-500 text-sm">Text should be less than 1000 characters.</div>}
               <div className="text-right mt-1 text-sm text-gray-500">{textCount}/1000</div>
-              <p className="my-4">Context</p>
+              <p className="my-4">Prompt</p>
               <Textarea
                 className={`my-4 ${validationError.context ? 'border-red-500' : ''}`}
                 placeholder="I want to extract..."
@@ -243,7 +243,7 @@ ALWAYS ensure to escape all special characters and backslashes (e.g. \\\\d inste
               </Select>
             </div>
             <div>
-              <p className="mt-4">Suggestions</p>
+              <p className="mt-4">Settings (Experimental)</p>
               <div className="p-4">
                 <Toggle className="m-2" onClick={() => setToggleState(prevState => ({ ...prevState, globalMatches: !prevState.globalMatches }))}>
                   Global Matches
@@ -286,26 +286,37 @@ ALWAYS ensure to escape all special characters and backslashes (e.g. \\\\d inste
               </div>
             ) : (
               <>
-                {isLoading ? (
-                  <LoadingSkeleton />
-                ) : (
-                  <>
-                    <div>
-                      <p className="my-4">Regex Pattern</p>
+                <div>
+                  <p className="my-4">Regex Pattern</p>
+                  {isLoading ? (
+                    <LoadingSkeleton />
+                  ) : (
+                    <>
                       <Copybox className="h-full font-mono overflow-x-scroll" text={regex_pattern}></Copybox>
-                    </div>
-                    <div>
-                      <p className="my-4">Code Example</p>
+                    </>
+                  )}
+                </div>
+                <div>
+                  <p className="my-4">Code Example</p>
+                  {isLoading ? (
+                    <LoadingSkeleton />
+                  ) : (
+                    <>
                       <Copybox className="h-full font-mono overflow-x-scroll" text={code_example} language={language}></Copybox>
-                    </div>
-                    {explanation && (
-                      <div>
-                        <p className="my-4">Explanation</p>
-                        <p className="m-4">{explanation}</p>
-                      </div>
-                    )}
-                  </>
-                )}
+                    </>
+                  )}
+                </div>
+
+                <div>
+                  <p className="my-4">Explanation</p>
+                  {isLoading ? (
+                    <LoadingSkeleton />
+                  ) : (
+                    <>
+                      <p className="m-4">{explanation}</p>
+                    </>
+                  )}
+                </div>
               </>
             )}
           </CardContent>
