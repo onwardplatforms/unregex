@@ -40,7 +40,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
       <Script
         async
         strategy="afterInteractive"
-        src={`https://www.googletagmanager.com/gtag/js?id=${process.env.GA_TRACKING_ID}`}
+        src={`https://www.googletagmanager.com/gtag/js?id=G-6CY0MJMKFP`}
       />
       <Script id="google-analytics" strategy="afterInteractive">
         {`
@@ -48,7 +48,7 @@ const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
           function gtag(){window.dataLayer.push(arguments);}
           gtag('js', new Date());
 
-          gtag('config', ${process.env.GA_TRACKING_ID});
+          gtag('config', 'G-6CY0MJMKFP');
         `}
       </Script>
       <body className={inter.className}>{children}</body>

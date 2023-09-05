@@ -77,9 +77,9 @@ export default function Home() {
     let optionalSentences = [];
 
     if (toggleState.globalMatches) {
-      optionalSentences.push("Find all matches.");
+      optionalSentences.push("Find all matches. This may include language specific features for code examples (e.g. re.MULTILINE or re.DOTALL)");
     } else {
-      optionalSentences.push("Do not find all matches.");
+      optionalSentences.push("Find the first match only.");
     }
 
     if (toggleState.captureGroups) {
@@ -89,9 +89,9 @@ export default function Home() {
     }
 
     if (toggleState.ignoreCase) {
-      optionalSentences.push("Ignore case.");
+      optionalSentences.push("Ignore case in the code example if the language supports it (e.g. re.re.IGNORECASE).");
     } else {
-      optionalSentences.push("Do not ignore case.");
+      optionalSentences.push("Do not ignore letter casing.");
     }
 
     if (toggleState.wordBoundaries) {
